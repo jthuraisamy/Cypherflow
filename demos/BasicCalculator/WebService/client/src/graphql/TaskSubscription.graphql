@@ -1,0 +1,14 @@
+subscription TaskSubscription {
+  task {
+    id
+    graphId
+    timestamp
+    name
+    state
+    outputNode {
+      id
+      properties
+    }
+    adjacentEdges
+  }
+}

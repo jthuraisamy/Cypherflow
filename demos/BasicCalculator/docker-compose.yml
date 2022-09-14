@@ -1,0 +1,54 @@
+version: "3.0"
+
+services:
+  redis_stack:
+    container_name: redis_stack
+    hostname: redis-stack
+    image: redis/redis-stack:latest
+    restart: unless-stopped
+    ports:
+      - "4001:8001"
+    logging:
+      driver: none
+
+  memgraph_discriminator:
+    container_name: memgraph_discriminator
+    hostname: memgraph-discriminator
+    image: memgraph/memgraph-platform:latest
+    tty: true
+    ports:
+      - "4002:3000"
+    logging:
+      driver: none
+
+  memgraph_generator:
+    container_name: memgraph_generator
+    hostname: memgraph-generator
+    image: memgraph/memgraph-platform:latest
+    tty: true
+    ports:
+      - "4003:3000"
+    logging:
+      driver: none
+
+  calculator_service:
+    container_name: calculator_service
+    hostname: calculator-service
+    build: ./CalculatorService
+    restart: unless-stopped
+    volumes:
+      - ../../src/.:/app/lib/Cypherflow/.
+    depends_on:
+      - redis_stack
+      - memgraph_generator
+      - memgraph_discriminator
+
+  web_service:
+    container_name: web_service
+    hostname: web-service
+    build: ./WebService
+    restart: unless-stopped
+    depends_on:
+      - calculator_service
+    ports:
+      - "4000:4000"

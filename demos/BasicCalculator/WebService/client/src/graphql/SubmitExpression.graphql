@@ -1,0 +1,3 @@
+mutation SubmitExpression($expression: String!) {
+  submitExpression(expression: $expression)
+}

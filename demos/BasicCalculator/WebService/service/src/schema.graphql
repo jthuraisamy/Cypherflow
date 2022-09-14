@@ -1,0 +1,56 @@
+type Query {
+  hello: String
+}
+
+type Subscription {
+  graph: Graph
+  task: Task
+}
+
+type Mutation {
+  submitExpression(expression: String): Boolean
+  computeTask(graphId: ID!, taskId: ID!): Boolean
+}
+
+type Graph {
+  id: ID!
+  expression: String
+  nodes: [GraphNode]
+  edges: [GraphEdge]
+}
+
+type GraphNode {
+  id: ID!
+  labels: [String]
+  properties: String
+}
+
+type GraphEdge {
+  id: ID!
+  type: String
+  startNode: ID!
+  endNode: ID!
+  properties: String
+}
+
+type Task {
+  id: ID!
+  graphId: ID!
+  timestamp: Int!
+  name: String!
+  state: TaskState!
+  outputNode: GraphNode
+  adjacentEdges: [ID]
+}
+
+enum TaskState {
+  INSTANTIATED
+  ELIGIBLE
+  NOT_ELIGIBLE
+  FIREABLE
+  CACHED
+  QUEUED
+  COMPUTING
+  COMPUTED
+  ABORTED
+}

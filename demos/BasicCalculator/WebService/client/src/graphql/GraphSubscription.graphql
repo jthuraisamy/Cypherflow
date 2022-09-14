@@ -1,0 +1,18 @@
+subscription GraphSubscription {
+  graph {
+    id
+    expression
+    nodes {
+      id
+      labels
+      properties
+    }
+    edges {
+      id
+      type
+      startNode
+      endNode
+      properties
+    }
+  }
+}
