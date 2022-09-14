@@ -2,7 +2,7 @@
 
 An execution engine that incorporates dataflow concepts using the Cypher Query Language.
 
-Execution results are cached in a property graph for future subgraph querying. Should no results return for a given subgraph, the subgraph itself serves as a declarative expression to reify it through tasking in a dataflow-like manner.
+Execution results are cached in a property graph for future querying. Should no results return for a given subgraph, an appropriately formed one will serve as a declarative expression for reification through tasking in a dataflow-like manner.
 
 
 ## Usage
