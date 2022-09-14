@@ -4,8 +4,8 @@ import Redis from 'ioredis';
 
 const pubSub = createPubSub({
   eventTarget: createRedisEventTarget({
-    publishClient: new Redis(6379, 'redis-stack'),
-    subscribeClient: new Redis(6379, 'redis-stack'),
+    publishClient: new Redis('redis://redis-stack:6379'),
+    subscribeClient: new Redis('redis://redis-stack:6379'),
   }),
 });
 

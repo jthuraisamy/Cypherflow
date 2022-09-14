@@ -9,7 +9,6 @@ type Subscription {
 
 type Mutation {
   submitExpression(expression: String): Boolean
-  computeTask(graphId: ID!, taskId: ID!): Boolean
 }
 
 type Graph {
