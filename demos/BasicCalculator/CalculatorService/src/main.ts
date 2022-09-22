@@ -10,8 +10,8 @@ import { convertArithmeticExpressionToQuery } from './parsers/ArithmeticExpressi
 const service = Cypherflow.startInstance({
   servers: {
     messageBroker: 'redis://redis-stack:6379',
-    generatorGraph: 'bolt://memgraph-generator:7687',
-    discriminatorGraph: 'bolt://memgraph-discriminator:7687',
+    submissionsGraph: 'bolt://submissions-graph:7687',
+    experienceGraph: 'bolt://experience-graph:7687',
   },
 
   expressionParser: convertArithmeticExpressionToQuery,

@@ -1,4 +1,4 @@
-import { ApolloLink, Operation, FetchResult, Observable, ApolloClient, InMemoryCache, gql } from '@apollo/client/core';
+import { ApolloLink, Operation, FetchResult, Observable, ApolloClient, InMemoryCache } from '@apollo/client/core';
 import { split } from '@apollo/client/link/core';
 import { HttpLink } from '@apollo/client/link/http';
 import { createApolloProvider } from '@vue/apollo-option';

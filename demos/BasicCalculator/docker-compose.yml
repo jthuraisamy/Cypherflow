@@ -11,9 +11,9 @@ services:
     logging:
       driver: none
 
-  memgraph_discriminator:
-    container_name: memgraph_discriminator
-    hostname: memgraph-discriminator
+  experience_graph:
+    container_name: experience_graph
+    hostname: experience-graph
     image: memgraph/memgraph-platform:latest
     tty: true
     ports:
@@ -21,9 +21,9 @@ services:
     logging:
       driver: none
 
-  memgraph_generator:
-    container_name: memgraph_generator
-    hostname: memgraph-generator
+  submissions_graph:
+    container_name: submissions_graph
+    hostname: submissions-graph
     image: memgraph/memgraph-platform:latest
     tty: true
     ports:
@@ -40,8 +40,8 @@ services:
       - ../../src/.:/app/lib/Cypherflow/.
     depends_on:
       - redis_stack
-      - memgraph_generator
-      - memgraph_discriminator
+      - experience_graph
+      - submissions_graph
 
   web_service:
     container_name: web_service
