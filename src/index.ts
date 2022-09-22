@@ -40,8 +40,8 @@ export class Cypherflow {
     return {
       redisPublisher: new Redis(servers.messageBroker),
       redisSubscriber: new Redis(servers.messageBroker),
-      neo4jGenerator: neo4j.driver(servers.generatorGraph),
-      neo4jDiscriminator: neo4j.driver(servers.discriminatorGraph),
+      neo4jSubmissions: neo4j.driver(servers.submissionsGraph),
+      neo4jExperience: neo4j.driver(servers.experienceGraph),
     };
   }
 
@@ -79,7 +79,7 @@ export class Cypherflow {
   }
 
   /**
-   * Create graph in Generator DB given an expression.
+   * Create graph in Submissions DB given an expression.
    */
   async createGraph(expression: string) {
     const id = ulid();
@@ -99,11 +99,11 @@ export class Cypherflow {
     }
 
     // Write graph.
-    await executeWriteQuery(this.drivers.neo4jGenerator, query.join('\n'));
+    await executeWriteQuery(this.drivers.neo4jSubmissions, query.join('\n'));
 
     // Read graph records.
     const readTransaction = await executeReadQuery(
-      this.drivers.neo4jGenerator,
+      this.drivers.neo4jSubmissions,
       `MATCH (n)-[r {graphId: "${id}"}]-(m) RETURN n, r;`
     );
 

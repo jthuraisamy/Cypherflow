@@ -151,7 +151,7 @@ export class BaseTask {
   /**
    * During the Fireable state:
    *   - Populate input arguments into Task.
-   *   - Search in Discriminator Graph for existing computation.
+   *   - Search in Experience Graph for existing computation.
    *     - If successful, set task to Cached state.
    *     - If unsuccessful, step into the Computation state.
    */
@@ -162,6 +162,7 @@ export class BaseTask {
     // Check if results are cached, set state accordingly.
     if (await this.isCached()) {
       this.setState(TaskState.Cached);
+      // await this.updateExperienceGraph(); // might be redundant
     } else {
       this.setState(TaskState.Computing);
     }
@@ -189,8 +190,8 @@ export class BaseTask {
     // Call the Task's executor function.
     if (this.compute(args)) {
       this.setState(TaskState.Computed);
-      await this.updateDiscriminatorGraph();
-      await this.updateGeneratorGraph();
+      await this.updateExperienceGraph();
+      await this.updateSubmissionsGraph();
     } else {
       this.setState(TaskState.Aborted);
     }
@@ -205,7 +206,7 @@ export class BaseTask {
   }
 
   /**
-   * Query the Generator Graph to check if the provided output node is
+   * Query the Submissions Graph to check if the provided output node is
    * eligible for this task (i.e. required paths are satisfied).
    */
   async isEligible() {
@@ -225,7 +226,7 @@ export class BaseTask {
 
       // Execute query.
       let queryText = query.join('\n');
-      let pathTransaction = await executeReadQuery(this.drivers.neo4jGenerator, queryText);
+      let pathTransaction = await executeReadQuery(this.drivers.neo4jSubmissions, queryText);
 
       // Return false if there were no records for a required input.
       if (pathTransaction.records.length === 0) {
@@ -254,7 +255,7 @@ export class BaseTask {
   }
 
   /**
-   * Query the Generator Graph to check if all the input arguments are
+   * Query the Submissions Graph to check if all the input arguments are
    * available for potential computation to begin.
    */
   async isFireable() {
@@ -271,7 +272,7 @@ export class BaseTask {
 
       // Execute query.
       let queryText = query.join('\n');
-      let pathTransaction = await executeReadQuery(this.drivers.neo4jGenerator, queryText);
+      let pathTransaction = await executeReadQuery(this.drivers.neo4jSubmissions, queryText);
 
       // Return false if any records were returned, which indicates there are
       // some input arguments that are currently not yet available.
@@ -286,7 +287,7 @@ export class BaseTask {
   }
 
   /**
-   * Query the Discriminator Graph to check if this Task output is already cached.
+   * Query the Experience Graph to check if this Task output is already cached.
    */
   async isCached() {
     let spec = this.constructor['spec'];
@@ -296,7 +297,7 @@ export class BaseTask {
     for (const input of spec.inputs) {
       for (const record of this.data.input[input.name]) {
         // Remove graphId, taskId from record's elements.
-        let genericRecord = JSON.parse(JSON.stringify(record)); // shallow-copy??
+        let genericRecord = JSON.parse(JSON.stringify(record));
         for (let identifier in genericRecord) {
           if ('graphId' in genericRecord[identifier]) {
             delete genericRecord[identifier]['graphId'];
@@ -315,7 +316,7 @@ export class BaseTask {
 
     // Execute MATCH query.
     let matchQueryText = matchQuery.join('\n');
-    let matchTransaction = await executeReadQuery(this.drivers.neo4jDiscriminator, matchQueryText);
+    let matchTransaction = await executeReadQuery(this.drivers.neo4jExperience, matchQueryText);
 
     // Merge output properties from DG into GG and return true.
     if (matchTransaction.records.length > 0) {
@@ -340,7 +341,7 @@ export class BaseTask {
 
       // Execute SET query.
       let setQueryText = `${setQuery.join('\n')};`;
-      await executeWriteQuery(this.drivers.neo4jGenerator, setQueryText);
+      await executeWriteQuery(this.drivers.neo4jSubmissions, setQueryText);
 
       return true;
     }
@@ -372,7 +373,7 @@ export class BaseTask {
       // Execute query.
       let queryText = query.join('\n');
 
-      let pathTransaction = await executeReadQuery(this.drivers.neo4jGenerator, queryText);
+      let pathTransaction = await executeReadQuery(this.drivers.neo4jSubmissions, queryText);
 
       // Populate records for input.
       if (pathTransaction.records.length > 0) {
@@ -386,8 +387,15 @@ export class BaseTask {
             // Convert Integer to Number in the element's properties.
             elements[identifier] = element.properties;
             for (const property in elements[identifier]) {
-              if (neo4j.isInt(elements[identifier][property])) {
-                elements[identifier][property] = elements[identifier][property].toNumber();
+              const value = elements[identifier][property];
+              if (neo4j.isInt(value)) {
+                elements[identifier][property] = value.toNumber();
+              } else if (Array.isArray(value)) {
+                for (let i = 0; i < value.length; i++) {
+                  if (neo4j.isInt(value[i])) {
+                    elements[identifier][property][i] = value[i].toNumber();
+                  }
+                }
               }
             }
           }
@@ -399,15 +407,37 @@ export class BaseTask {
     }
   }
 
-  async updateDiscriminatorGraph() {
+  async updateExperienceGraph() {
     let spec = this.constructor['spec'];
 
-    // Add MERGE clause for output.
+    // If output node already exists, update the properties for this task.
     let outputRecord = {};
-    outputRecord[spec.output.name] = this.data.output['properties'];
-    outputRecord[spec.output.name]['taskId'] = this.id;
-    let outputPattern = `(${spec.output.name}:${spec.output.labels.join(':')})`;
+    const outputPattern = `(${spec.output.name}:${spec.output.labels.join(':')})`;
+    const { graphId, taskId, ...sanitizedProperties } = this.data.output['properties'];
+    outputRecord[spec.output.name] = sanitizedProperties;
     let outputPath = populatePath(outputPattern, spec.output, outputRecord);
+
+    // Execute MATCH query.
+    const matchQuery = `MATCH ${outputPath} RETURN ${spec.output.name};`;
+    const matchTransaction = await executeReadQuery(this.drivers.neo4jExperience, matchQuery);
+    if (matchTransaction.records.length > 0) {
+      // Extract properties from first record.
+      let record = matchTransaction.records[0];
+      let properties = record.get(spec.output.name).properties;
+      this.data.output['properties'] = properties;
+
+      for (const key in properties) {
+        // Convert Integer to Number in properties.
+        if (neo4j.isInt(properties[key])) {
+          properties[key] = properties[key].toNumber();
+        }
+      }
+    }
+
+    // Add MERGE clause for output.
+    outputRecord[spec.output.name] = this.data.output['properties'];
+    outputRecord[spec.output.name]['taskId'] = outputRecord[spec.output.name]['taskId'] || this.id;
+    outputPath = populatePath(outputPattern, spec.output, outputRecord);
     let ast = parseQuery(`MERGE ${outputPath}`);
 
     // Add MERGE clause for each record, and MATCH clauses for each node within.
@@ -432,6 +462,10 @@ export class BaseTask {
           if (element.type === 'node-pattern') {
             if (element.identifier && Object.keys(element.properties.entries).length > 0) {
               if (element.identifier.name !== spec.output.name) {
+                if (element.properties.entries.graphId) {
+                  delete element.properties.entries['graphId'];
+                }
+
                 namedNodes.push(element);
               }
             }
@@ -457,10 +491,10 @@ export class BaseTask {
 
     // Execute query.
     let queryText = constructQuery(ast);
-    await executeWriteQuery(this.drivers.neo4jDiscriminator, queryText);
+    await executeWriteQuery(this.drivers.neo4jExperience, queryText);
   }
 
-  async updateGeneratorGraph() {
+  async updateSubmissionsGraph() {
     let spec = this.constructor['spec'];
 
     // Initialize AST.
@@ -491,7 +525,7 @@ export class BaseTask {
 
     // Update the query and execute it.
     let queryText = constructQuery(ast);
-    await executeWriteQuery(this.drivers.neo4jGenerator, queryText);
+    await executeWriteQuery(this.drivers.neo4jSubmissions, queryText);
   }
 
   static async findEligibleNodes({ drivers, graphId, taskType }) {
@@ -501,7 +535,7 @@ export class BaseTask {
       RETURN ${taskType.spec.output.name};
     `;
 
-    let transaction = await executeReadQuery(drivers.neo4jGenerator, query);
+    let transaction = await executeReadQuery(drivers.neo4jSubmissions, query);
     return transaction.records.map((r) => r._fields).flat();
   }
 }

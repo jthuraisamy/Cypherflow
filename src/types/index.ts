@@ -3,8 +3,8 @@ import { BaseTask } from '../tasking/BaseTask';
 export interface Drivers {
   redisPublisher: any;
   redisSubscriber: any;
-  neo4jGenerator: any;
-  neo4jDiscriminator: any;
+  neo4jSubmissions: any;
+  neo4jExperience: any;
 }
 
 export interface TaskClass {

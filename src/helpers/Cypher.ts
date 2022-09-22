@@ -8,6 +8,11 @@ const semaphore = new Semaphore(1);
  * Execute a read query and return the transaction.
  */
 export const executeReadQuery = async (driver, query) => {
+  // let caller = new Error().stack.split('\n')[2].trim().split(' ')[1];
+  // console.log(`----- ${caller} ----- start`);
+  // console.log(query);
+  // console.log(`----- ${caller} ----- end\n`);
+
   const release = await semaphore.acquire();
 
   const session = driver.session();
@@ -22,6 +27,11 @@ export const executeReadQuery = async (driver, query) => {
  * Execute a write query and return the transaction.
  */
 export const executeWriteQuery = async (driver, query) => {
+  // let caller = new Error().stack.split('\n')[2].trim().split(' ')[1];
+  // console.log(`----- ${caller} ----- start`);
+  // console.log(query);
+  // console.log(`----- ${caller} ----- end\n`);
+
   const release = await semaphore.acquire();
 
   const session = driver.session();
@@ -65,10 +75,24 @@ export const populatePath = (inputPath, outputSpec, record) => {
       element.properties = { type: 'map', entries: {} };
 
       for (const key in recordProperties) {
-        element.properties.entries[key] = {
-          type: isNaN(recordProperties[key]) ? 'string' : 'integer',
-          value: recordProperties[key],
-        };
+        const value = recordProperties[key];
+
+        if (Array.isArray(value)) {
+          element.properties.entries[key] = {
+            type: 'collection',
+            elements: value.map((e) => {
+              return {
+                type: isNaN(e) ? 'string' : 'integer',
+                value: e,
+              };
+            }),
+          };
+        } else {
+          element.properties.entries[key] = {
+            type: isNaN(value) ? 'string' : 'integer',
+            value: value,
+          };
+        }
       }
 
       if (element.identifier.name !== outputSpec.name) {
