@@ -1,0 +1,54 @@
+version: "3.0"
+
+services:
+  redis_stack:
+    container_name: redis_stack
+    hostname: redis-stack
+    image: redis/redis-stack:latest
+    restart: unless-stopped
+    ports:
+      - "4001:8001"
+    logging:
+      driver: none
+
+  experience_graph:
+    container_name: experience_graph
+    hostname: experience-graph
+    image: memgraph/memgraph-platform:latest
+    tty: true
+    ports:
+      - "4002:3000"
+    logging:
+      driver: none
+
+  submissions_graph:
+    container_name: submissions_graph
+    hostname: submissions-graph
+    image: memgraph/memgraph-platform:latest
+    tty: true
+    ports:
+      - "4003:3000"
+    logging:
+      driver: none
+
+  game_service:
+    container_name: game_service
+    hostname: game-service
+    build: ./GameService
+    restart: unless-stopped
+    volumes:
+      - ../../src/.:/app/lib/Cypherflow/.
+    depends_on:
+      - redis_stack
+      - experience_graph
+      - submissions_graph
+
+  web_service:
+    container_name: web_service
+    hostname: web-service
+    build: ./WebService
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    depends_on:
+      - game_service
