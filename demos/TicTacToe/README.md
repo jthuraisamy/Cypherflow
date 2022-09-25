@@ -8,7 +8,7 @@ Suspending
 
 ## Tasks
 
-| Name            | Diagram of Fireable Conditions       |
+| Name            | Fireable When                        |
 |:----------------|:-------------------------------------|
 | InitializeBoard | ![](https://i.imgur.com/izK8q6R.png) |
 | PlaceMark       | ![](https://i.imgur.com/pvhgMHM.png) |
@@ -42,16 +42,29 @@ The resolver for this mutation publishes the arguments to the `SubmitExpression`
 }
 ```
 
-The channel has a consumer in `GameService` which receives it and passes it to the designated parser (`JsonExpression`). The parser creates the following graph for engine submission:
+The channel has a consumer in `GameService` which receives it and passes it to the designated parser, `JsonExpression`. The parser creates the following query for submission to the engine:
 
-```json
+```cypher
 MERGE (old:Board {value: "[0,0,0,0,0,0,0,0,0]", graphId: "01GDV0PDH3G4V37SP3VS0YX6CX"})
 CREATE (new:Board {graphId: "01GDV0PDH3G4V37SP3VS0YX6CX"})
 CREATE (old)-[move:NEXT_MOVE {value: "X0", graphId: "01GDV0PDH3G4V37SP3VS0YX6CX"}]->(new)
 ```
 
-As you can see, a `graphId` (ULID) is generated for each node and edge to help distinguish the submissions in the database. Currently, the board is serialized as a string because the AST transform function does not support arrays (to be resolved later). 
+As you can see, each node and edge is tagged with  a `graphId` ([ULID](https://github.com/ulid/spec)) to help distinguish the submissions in the database. Currently, the board is serialized as a string because the AST transform function does not support arrays (to be resolved later). 
 
 Visually, the graph looks like this:
 
 ![](https://imgur.com/jwdIj4E.png)
+
+After the write query is executed in the Submissions DB, a message is published in the `CreateGraph` channel to trigger tasking:
+
+```json
+{
+  "id": "01GDV0PDH3G4V37SP3VS0YX6CX",
+  "expression": "{\"board\":[0,0,0,0,0,0,0,0,0],\"move\":\"X0\"}",
+  "nodes": [ ... ],
+  "edges": [ ... ]
+}
+```
+
+Any service subscribing to that channel can check to see whether its included tasks can participate in each submitted graph.
