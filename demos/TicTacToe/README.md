@@ -61,10 +61,10 @@ After the write query is executed in the Submissions DB, a message is published 
 ```json
 {
   "id": "01GDV0PDH3G4V37SP3VS0YX6CX",
-  "expression": "{\"board\":[0,0,0,0,0,0,0,0,0],\"move\":\"X0\"}",
-  "nodes": [ ... ],
-  "edges": [ ... ]
+  "expression": "{\"board\":[0,0,0,0,0,0,0,0,0],\"move\":\"X0\"}"
 }
 ```
 
-Any service subscribing to that channel can check to see whether its included tasks can participate in each submitted graph.
+Any service subscribing to that channel can check to see whether its included tasks can participate in each submitted graph. In this case, the `GameService` iterates through its tasks: `InitializeBoard` and `PlaceMark`.
+
+For each task, the service scans the graph for eligible output nodes that the task can potentially process. Specifically, it is looking for nodes that match the expected output labels and do not appear to be in a *computed* state (a lifecycle term we will circle back to). The number of output nodes determines how many instances of the task should be spun-up for this graph.
