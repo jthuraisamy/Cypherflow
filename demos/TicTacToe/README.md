@@ -2,16 +2,18 @@
 
 ## Assumptions
 
-Suspending
+To understand the actual intended purpose this demo serves, some suspension of disbelief would be appropriate with the following assumptions:
 
 - Consistent and immutable rules for maximizing reward (winning) do not exist.
 
 ## Tasks
 
-| Name            | Fireable When                        |
-|:----------------|:-------------------------------------|
-| InitializeBoard | ![](https://i.imgur.com/izK8q6R.png) |
-| PlaceMark       | ![](https://i.imgur.com/pvhgMHM.png) |
+| Name            | Fireable When                        | Computed When                        |
+|:----------------|:-------------------------------------|--------------------------------------|
+| InitializeBoard | ![](https://i.imgur.com/XElN4ZR.png) | ![](https://i.imgur.com/lXpDVvJ.png) |
+| PlaceMark       | ![](https://i.imgur.com/a5VAz0T.png) | ![](https://i.imgur.com/Kb4N46k.png) |
+
+> Note: Each task can output only one node (green) and any edges associated with it.
 
 ## Expression Parsers
 
@@ -52,9 +54,9 @@ CREATE (old)-[move:NEXT_MOVE {value: "X0", graphId: "01GDV0PDH3G4V37SP3VS0YX6CX"
 
 As you can see, each node and edge is tagged with  a `graphId` ([ULID](https://github.com/ulid/spec)) to help distinguish the submissions in the database. Currently, the board is serialized as a string because the AST transform function does not support arrays (to be resolved later). 
 
-Visually, the graph looks like this:
+Visually, the submitted graph looks like this:
 
-![](https://imgur.com/jwdIj4E.png)
+![](https://imgur.com/BdIu92w.png)
 
 After the write query is executed in the Submissions DB, a message is published in the `CreateGraph` channel to trigger tasking:
 
@@ -65,6 +67,6 @@ After the write query is executed in the Submissions DB, a message is published 
 }
 ```
 
-Any service subscribing to that channel can check to see whether its included tasks can participate in each submitted graph. In this case, the `GameService` iterates through its tasks: `InitializeBoard` and `PlaceMark`.
+Any service subscribing to that channel can check to see whether its included tasks can participate in each submitted graph. [For each task](/src/index.ts#L175), the service scans the graph for eligible output nodes that the task can potentially generate. Specifically, it is looking for nodes that match the expected output labels and do not appear to be in a *computed* state (a lifecycle term we will circle back to). The number of output nodes determines how many instances of the task should be spun-up for this graph.
 
-For each task, the service [scans the graph](/src/index.ts#L178) for eligible output nodes that the task can potentially process. Specifically, it is looking for nodes that match the expected output labels and do not appear to be in a *computed* state (a lifecycle term we will circle back to). The number of output nodes determines how many instances of the task should be spun-up for this graph.
+In this case, the `GameService` iterates through two tasks: `InitializeBoard` and `PlaceMark`. For each task, two instances are created because both nodes in the submission match the expected output label (`Board`) and do not appear to be in a computed state (as per the specification diagrams [above](#tasks)). With four tasks in total being created, we can start to track their lifecycles and the dataflow-like interactions they have toward the outcome of contributing to the experience graph.
