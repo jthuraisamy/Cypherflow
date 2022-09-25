@@ -528,7 +528,7 @@ export class BaseTask {
     await executeWriteQuery(this.drivers.neo4jSubmissions, queryText);
   }
 
-  static async findEligibleNodes({ drivers, graphId, taskType }) {
+  static async findEligibleOutputNodesInSubmissionGraph({ drivers, graphId, taskType }) {
     let query: string = `
       MATCH (${taskType.spec.output.name}:${taskType.spec.output.labels.join(':')})
       WHERE (${taskType.spec.output.name}.graphId = "${graphId}") AND NOT(${taskType.spec.output.computedWhen})

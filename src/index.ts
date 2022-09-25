@@ -175,7 +175,7 @@ export class Cypherflow {
   async createTasks(graph) {
     for (const TaskType of this.supportedTaskTypes) {
       // Find eligible output nodes for this task.
-      const eligibleNodes = await BaseTask.findEligibleNodes({
+      const eligibleNodes = await BaseTask.findEligibleOutputNodesInSubmissionGraph({
         drivers: this.drivers,
         graphId: graph.id,
         taskType: TaskType,
