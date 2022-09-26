@@ -23,6 +23,8 @@ To understand the actual intended purpose this demo serves, some suspension of d
 
 ## Detailed Walkthrough
 
+### Graph Submission
+
 A player is starting a new game and intends to place X in position 0:
 
 ![](https://i.imgur.com/jqktzH2.png)
@@ -73,6 +75,8 @@ Any service subscribing to that channel can check to see whether its [supported 
 
 In this case, the `GameService` iterates through two tasks: `InitializeBoard` and `PlaceMark`. For each task, two instances are created because both nodes in the submission match the expected output label (`Board`) and do not appear to be in a computed state (as per the specification diagrams [above](#tasks)).
 
+### Task Lifecycle
+
 With a total of four tasks being created, we can step through their lifecycles and the dataflow-like interactions they have toward the outcome of contributing to the experience graph. Recall that the lifecycle for tasks looks like this:
 
 ```mermaid
@@ -113,3 +117,10 @@ Consider the Submission DB queries below that check the eligibility of the two `
 2022-09-26T01:00:19.835Z - PlaceMark(01GDV0PDKJ5BGSQTSTEC8XGYKJ) | WHERE ID(new) = 1
 2022-09-26T01:00:19.835Z - PlaceMark(01GDV0PDKJ5BGSQTSTEC8XGYKJ) | RETURN old, move, new;
 ```
+
+A visual way to think about this eligibility check process is to visualize whether the "shape" of the task can be laid over the candidate output node.
+
+| Task Type       | Task ID                      | Visual                               | Status      |
+|:----------------|:-----------------------------|:-------------------------------------|:------------|
+| PlaceMark       | `01GDV0PDKJ5BGSQTSTEC8XGYKJ` | ![](https://i.imgur.com/DZK3wek.png) | NotEligible |
+| PlaceMark       | `01GDV0PDKK8AQX83D5P23HY22Y` | ![](https://i.imgur.com/Hij3WEx.png) | Eligible    |
