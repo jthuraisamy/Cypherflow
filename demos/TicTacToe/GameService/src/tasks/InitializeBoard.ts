@@ -27,6 +27,7 @@ export class InitializeBoard extends BaseTask {
     // Save properties.
     this.data.output['properties'].value = JSON.stringify([...Array(9)].map((x) => 0));
     this.data.output['properties'].state = 'ONGOING';
+    this.data.output['properties'].winningPositions = JSON.stringify([]);
 
     // Print output.
     this.logTask(`=> ${JSON.stringify(this.data.output['properties'])}`);
