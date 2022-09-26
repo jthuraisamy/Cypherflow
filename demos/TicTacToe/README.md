@@ -118,7 +118,7 @@ Consider the Submission DB queries below that check the eligibility of the two `
 2022-09-26T01:00:19.835Z - PlaceMark(01GDV0PDKJ5BGSQTSTEC8XGYKJ) | RETURN old, move, new;
 ```
 
-A visual way to think about this eligibility check process is to visualize whether the "shape" of the task can be laid over the candidate output node.
+Another way to think about the eligibility check is to visualize whether the "shape" of the task can be laid over each candidate output node:
 
 | Task Type       | Task ID                      | Visual                               | Status      |
 |:----------------|:-----------------------------|:-------------------------------------|:------------|
