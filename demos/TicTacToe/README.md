@@ -97,6 +97,8 @@ stateDiagram-v2
     Computed --> [*]
 ```
 
+#### Eligibility Check
+
 | Task Type       | Task ID                      | Output Node ID | Status       |
 |:----------------|:-----------------------------|:---------------|:-------------|
 | InitializeBoard | `01GDV0PDK6JSPJ02T9CVB7JX2P` | 0              | Instantiated |
@@ -104,7 +106,7 @@ stateDiagram-v2
 | PlaceMark       | `01GDV0PDKJ5BGSQTSTEC8XGYKJ` | 0              | Instantiated |
 | PlaceMark       | `01GDV0PDKK8AQX83D5P23HY22Y` | 1              | Instantiated |
 
-At this initial point, all the tasks have been instantiated, and the next step for each task is call the `isEligible()` function. Although each output node appears to be a candidate the task can compute, we also need to know whether the input specifications for the task match with the output node.
+At this initial point, all the tasks are in an Instantiated state, and the next step for each task is call the `isEligible()` function. Although each output node appears to be a candidate the task can compute, we also need to know whether the input specifications for the task match with the output node.
 
 Consider the Submission DB queries below that check the eligibility of the two `PlaceMark` tasks. The first one will fail to match because there are no nodes that connect toward node #0. The second one will successfully match because node #0 is a `Board` node that connects toward node #1 (also `Board`) with a `NEXT_MOVE` relationship. 
 
@@ -120,7 +122,7 @@ Consider the Submission DB queries below that check the eligibility of the two `
 
 Another way to think about the eligibility check is to visualize whether the "shape" of the task can be laid over each candidate output node:
 
-| Task Type       | Task ID                      | Visual                               | Status      |
-|:----------------|:-----------------------------|:-------------------------------------|:------------|
-| PlaceMark       | `01GDV0PDKJ5BGSQTSTEC8XGYKJ` | ![](https://i.imgur.com/DZK3wek.png) | NotEligible |
-| PlaceMark       | `01GDV0PDKK8AQX83D5P23HY22Y` | ![](https://i.imgur.com/Hij3WEx.png) | Eligible    |
+| Task ID                      | Visual                               | Status      |
+|:-----------------------------|:-------------------------------------|:------------|
+| `01GDV0PDKJ5BGSQTSTEC8XGYKJ` | ![](https://i.imgur.com/DZK3wek.png) | NotEligible |
+| `01GDV0PDKK8AQX83D5P23HY22Y` | ![](https://i.imgur.com/Hij3WEx.png) | Eligible    |
