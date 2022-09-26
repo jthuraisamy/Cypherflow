@@ -115,14 +115,14 @@ Consider the Submission DB queries below that check the eligibility of the two `
 2022-09-26T01:00:19.719Z - PlaceMark(01GDV0PDKJ5BGSQTSTEC8XGYKJ) | WHERE ID(new) = 0
 2022-09-26T01:00:19.719Z - PlaceMark(01GDV0PDKJ5BGSQTSTEC8XGYKJ) | RETURN old, move, new;
 
-2022-09-26T01:00:19.835Z - PlaceMark(01GDV0PDKJ5BGSQTSTEC8XGYKJ) | MATCH (old:Board)-[move:NEXT_MOVE]->(new:Board)
-2022-09-26T01:00:19.835Z - PlaceMark(01GDV0PDKJ5BGSQTSTEC8XGYKJ) | WHERE ID(new) = 1
-2022-09-26T01:00:19.835Z - PlaceMark(01GDV0PDKJ5BGSQTSTEC8XGYKJ) | RETURN old, move, new;
+2022-09-26T01:00:19.835Z - PlaceMark(01GDV0PDKK8AQX83D5P23HY22Y) | MATCH (old:Board)-[move:NEXT_MOVE]->(new:Board)
+2022-09-26T01:00:19.835Z - PlaceMark(01GDV0PDKK8AQX83D5P23HY22Y) | WHERE ID(new) = 1
+2022-09-26T01:00:19.835Z - PlaceMark(01GDV0PDKK8AQX83D5P23HY22Y) | RETURN old, move, new;
 ```
 
 Another way to think about the eligibility check is to visualize whether the "shape" of the task can be laid over each candidate output node:
 
-| Task ID                      | Visual                               | Status      |
-|:-----------------------------|:-------------------------------------|:------------|
-| `01GDV0PDKJ5BGSQTSTEC8XGYKJ` | ![](https://i.imgur.com/DZK3wek.png) | NotEligible |
-| `01GDV0PDKK8AQX83D5P23HY22Y` | ![](https://i.imgur.com/Hij3WEx.png) | Eligible    |
+| Task ID   | Visual                               | Status      |
+|:----------|:-------------------------------------|:------------|
+| `...GYKJ` | ![](https://i.imgur.com/DZK3wek.png) | NotEligible |
+| `...Y22Y` | ![](https://i.imgur.com/Hij3WEx.png) | Eligible    |
