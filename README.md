@@ -25,6 +25,35 @@ Execution results are cached in a property graph for future querying. Should no 
 - Each task defines a specification for its inputs and output, as well as a compute function.
 - Tasks can indirectly react to the completion of other tasks (à la dataflow).
 
+#### Lifecycle
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    
+    [*] --> Instantiated
+    Instantiated --> Eligible
+    Instantiated --> NotEligible
+    NotEligible --> [*]
+    Eligible --> Fireable
+    Fireable --> Cached
+    Cached --> [*]
+    Fireable --> Computing
+    Computing --> Aborted
+    Aborted --> [*]
+    Computing --> Computed
+    Computed --> [*]
+```
+
+#### Specification
+
+- Array of inputs each defined by a pattern path pointing to the output node (each element must be named). 
+- One output node.
+
+#### Compute Function
+
+- TBD.
+
 ## Demos
 
 Demos are included as pedological tools to understand how Cypherflow works.

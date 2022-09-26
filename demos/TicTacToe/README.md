@@ -58,6 +58,8 @@ Visually, the submitted graph looks like this:
 
 ![](https://imgur.com/BdIu92w.png)
 
+### Instantiating Tasks
+
 After the write query is executed in the Submissions DB, a message is published in the `CreateGraph` channel to trigger tasking:
 
 ```json
@@ -67,6 +69,47 @@ After the write query is executed in the Submissions DB, a message is published 
 }
 ```
 
-Any service subscribing to that channel can check to see whether its included tasks can participate in each submitted graph. [For each task](/src/index.ts#L175), the service scans the graph for eligible output nodes that the task can potentially generate. Specifically, it is looking for nodes that match the expected output labels and do not appear to be in a *computed* state (a lifecycle term we will circle back to). The number of output nodes determines how many instances of the task should be spun-up for this graph.
+Any service subscribing to that channel can check to see whether its [supported tasks](/demos/TicTacToe/GameService/src/main.ts#L14) can participate in each submitted graph. [For each task](/src/index.ts#L175), the service scans the graph for eligible output nodes that the task can potentially generate. Specifically, it is looking for nodes that [match](/src/tasking/BaseTask.ts#L533) the expected output labels and do not appear to be in a *computed* state (a lifecycle term we will circle back to). The number of found nodes determines how many instances of the task should be spun-up for this graph.
 
-In this case, the `GameService` iterates through two tasks: `InitializeBoard` and `PlaceMark`. For each task, two instances are created because both nodes in the submission match the expected output label (`Board`) and do not appear to be in a computed state (as per the specification diagrams [above](#tasks)). With four tasks in total being created, we can start to track their lifecycles and the dataflow-like interactions they have toward the outcome of contributing to the experience graph.
+In this case, the `GameService` iterates through two tasks: `InitializeBoard` and `PlaceMark`. For each task, two instances are created because both nodes in the submission match the expected output label (`Board`) and do not appear to be in a computed state (as per the specification diagrams [above](#tasks)).
+
+With a total of four tasks being created, we can step through their lifecycles and the dataflow-like interactions they have toward the outcome of contributing to the experience graph. Recall that the lifecycle for tasks looks like this:
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    
+    [*] --> Instantiated
+    Instantiated --> Eligible
+    Instantiated --> NotEligible
+    NotEligible --> [*]
+    Eligible --> Fireable
+    Fireable --> Cached
+    Cached --> [*]
+    Fireable --> Computing
+    Computing --> Aborted
+    Aborted --> [*]
+    Computing --> Computed
+    Computed --> [*]
+```
+
+| Task Type       | Task ID                      | Output Node ID | Status       |
+|:----------------|:-----------------------------|:---------------|:-------------|
+| InitializeBoard | `01GDV0PDK6JSPJ02T9CVB7JX2P` | 0              | Instantiated |
+| InitializeBoard | `01GDV0PDK9E0MME36AA0CFK18F` | 1              | Instantiated |
+| PlaceMark       | `01GDV0PDKJ5BGSQTSTEC8XGYKJ` | 0              | Instantiated |
+| PlaceMark       | `01GDV0PDKK8AQX83D5P23HY22Y` | 1              | Instantiated |
+
+At this initial point, all the tasks have been instantiated, and the next step for each task is call the `isEligible()` function. Although each output node appears to be a candidate the task can compute, we also need to know whether the input specifications for the task match with the output node.
+
+Consider the Submission DB queries below that check the eligibility of the two `PlaceMark` tasks. The first one will fail to match because there are no nodes that connect toward node #0. The second one will successfully match because node #0 is a `Board` node that connects toward node #1 (also `Board`) with a `NEXT_MOVE` relationship. 
+
+```cypher
+2022-09-26T01:00:19.719Z - PlaceMark(01GDV0PDKJ5BGSQTSTEC8XGYKJ) | MATCH (old:Board)-[move:NEXT_MOVE]->(new:Board)
+2022-09-26T01:00:19.719Z - PlaceMark(01GDV0PDKJ5BGSQTSTEC8XGYKJ) | WHERE ID(new) = 0
+2022-09-26T01:00:19.719Z - PlaceMark(01GDV0PDKJ5BGSQTSTEC8XGYKJ) | RETURN old, move, new;
+
+2022-09-26T01:00:19.835Z - PlaceMark(01GDV0PDKJ5BGSQTSTEC8XGYKJ) | MATCH (old:Board)-[move:NEXT_MOVE]->(new:Board)
+2022-09-26T01:00:19.835Z - PlaceMark(01GDV0PDKJ5BGSQTSTEC8XGYKJ) | WHERE ID(new) = 1
+2022-09-26T01:00:19.835Z - PlaceMark(01GDV0PDKJ5BGSQTSTEC8XGYKJ) | RETURN old, move, new;
+```
