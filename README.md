@@ -45,16 +45,16 @@ stateDiagram-v2
     Computed --> [*]
 ```
 
-|              | Task Created? | Input Spec Match? | Inputs are Ready? | Output Cached? | Result Computed? |
-|:-------------|:-------------:|:-----------------:|:-----------------:|:--------------:|:----------------:|
-| Instantiated |       Y       |         -         |         -         |       -        |        -         |
-| Not Eligible |               |         N         |         -         |       -        |        -         |
-| Eligible     |               |         Y         |         N         |       -        |        -         |
-| Fireable     |               |         Y         |         Y         |       -        |        -         |
-| Cached       |               |         Y         |         Y         |       Y        |        -         |
-| Computing    |               |         Y         |         Y         |       N        |        -         |
-| Aborted      |               |         Y         |         Y         |       N        |        N         |
-| Computed     |               |         Y         |         Y         |       N        |        Y         |
+|              | Task Created? | Input Spec Matched? | Input Data Ready? | Output Cached? | Result Computed? |
+|:-------------|:-------------:|:-------------------:|:-----------------:|:--------------:|:----------------:|
+| Instantiated |       Y       |          -          |         -         |       -        |        -         |
+| Not Eligible |       Y       |          N          |         -         |       -        |        -         |
+| Eligible     |       Y       |          Y          |         N         |       -        |        -         |
+| Fireable     |       Y       |          Y          |         Y         |       -        |        -         |
+| Cached       |       Y       |          Y          |         Y         |       Y        |        -         |
+| Computing    |       Y       |          Y          |         Y         |       N        |        -         |
+| Aborted      |       Y       |          Y          |         Y         |       N        |        N         |
+| Computed     |       Y       |          Y          |         Y         |       N        |        Y         |
 
 #### Specification
 
