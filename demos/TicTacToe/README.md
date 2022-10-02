@@ -97,7 +97,7 @@ stateDiagram-v2
     Computed --> [*]
 ```
 
-#### Eligibility Check
+#### Instantiated ➔ Eligible / NotEligible
 
 | Task Type       | Task ID                      | Output Node ID | Status       |
 |:----------------|:-----------------------------|:---------------|:-------------|
@@ -126,3 +126,12 @@ Another way to think about the eligibility check is to visualize whether the "sh
 |:----------|:-------------------------------------|:------------|
 | `...GYKJ` | ![](https://i.imgur.com/DZK3wek.png) | NotEligible |
 | `...Y22Y` | ![](https://i.imgur.com/Hij3WEx.png) | Eligible    |
+
+#### Eligible ➔ Fireable
+
+| Task Type       | Task ID                          | Output Node ID | Status          |
+|:----------------|:---------------------------------|:---------------|:----------------|
+| InitializeBoard | `01GDV0PDK6JSPJ02T9CVB7JX2P`     | 0              | Eligible        |
+| InitializeBoard | `01GDV0PDK9E0MME36AA0CFK18F`     | 1              | Eligible        |
+| ~~PlaceMark~~   | ~~`01GDV0PDKJ5BGSQTSTEC8XGYKJ`~~ | ~~0~~          | ~~NotEligible~~ |
+| PlaceMark       | `01GDV0PDKK8AQX83D5P23HY22Y`     | 1              | Eligible        |

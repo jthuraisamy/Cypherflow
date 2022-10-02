@@ -45,6 +45,17 @@ stateDiagram-v2
     Computed --> [*]
 ```
 
+|              | Task Created? | Input Spec Match? | Inputs are Ready? | Output Cached? | Result Computed? |
+|:-------------|:-------------:|:-----------------:|:-----------------:|:--------------:|:----------------:|
+| Instantiated |       Y       |         -         |         -         |       -        |        -         |
+| Not Eligible |               |         N         |         -         |       -        |        -         |
+| Eligible     |               |         Y         |         N         |       -        |        -         |
+| Fireable     |               |         Y         |         Y         |       -        |        -         |
+| Cached       |               |         Y         |         Y         |       Y        |        -         |
+| Computing    |               |         Y         |         Y         |       N        |        -         |
+| Aborted      |               |         Y         |         Y         |       N        |        N         |
+| Computed     |               |         Y         |         Y         |       N        |        Y         |
+
 #### Specification
 
 - Array of inputs each defined by a pattern path pointing to the output node (each element must be named). 
