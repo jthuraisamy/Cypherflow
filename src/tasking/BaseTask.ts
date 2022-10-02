@@ -138,12 +138,17 @@ export class BaseTask {
 
   /**
    * During the Eligible state:
-   *   - Check if input arguments have valid values for search/computation.
-   *   - If so, populate the arguments and step into the Fireable state.
+   *   - Check if the task is still Eligible (other tasks may affect whether the output node is considered computed).
+   *   - If so, check if the task is Fireable, i.e. input arguments have valid values for search/computation.
    */
   async onEligible() {
-    if (await this.isFireable()) {
-      this.setState(TaskState.Fireable);
+    if (await this.isEligible()) {
+      if (await this.isFireable()) {
+        this.setState(TaskState.Fireable);
+        await this.step();
+      }
+    } else {
+      this.setState(TaskState.NotEligible);
       await this.step();
     }
   }
@@ -221,7 +226,7 @@ export class BaseTask {
 
       // Add query lines.
       query.push(`${matchType} ${input.patternPath}`);
-      query.push(`WHERE ID(${spec.output.name}) = ${this.data.output['id']}`);
+      query.push(`WHERE (ID(${spec.output.name}) = ${this.data.output['id']}) AND NOT(${spec.output.computedWhen})`);
       query.push(`RETURN ${pathIdentifiers.join(', ')};`);
 
       // Execute query.
