@@ -29,7 +29,7 @@ A player is starting a new game and intends to place X in position 0:
 
 ![](https://i.imgur.com/jqktzH2.png)
 
-The intention is translated to a `submitMove` mutation request via the GraphQL API:
+The intention is translated to a `submitMove` mutation request via the GraphQL API in `WebService`:
 
 ```graphql
 mutation {
@@ -54,7 +54,7 @@ CREATE (new:Board {graphId: "01GDV0PDH3G4V37SP3VS0YX6CX"})
 CREATE (old)-[move:NEXT_MOVE {value: "X0", graphId: "01GDV0PDH3G4V37SP3VS0YX6CX"}]->(new)
 ```
 
-As you can see, each node and edge is tagged with  a `graphId` ([ULID](https://github.com/ulid/spec)) to help distinguish the submissions in the database. Currently, the board is serialized as a string because the AST transform function does not support arrays (to be resolved later). 
+As you can see, each node and edge is tagged with  a `graphId` ([ULID](https://github.com/ulid/spec)) to help distinguish the submissions in the database. Side note: The board is currently serialized as a string because the AST transform function in the [cypher.js](https://github.com/jthuraisamy/cypher.js) library does not support forming arrays (to be resolved later). 
 
 Visually, the submitted graph looks like this:
 
@@ -86,6 +86,7 @@ stateDiagram-v2
     [*] --> Instantiated
     Instantiated --> Eligible
     Instantiated --> NotEligible
+    Eligible --> NotEligible
     NotEligible --> [*]
     Eligible --> Fireable
     Fireable --> Cached
@@ -127,7 +128,7 @@ Another way to think about the eligibility check is to visualize whether the "sh
 | `...GYKJ` | ![](https://i.imgur.com/DZK3wek.png) | NotEligible |
 | `...Y22Y` | ![](https://i.imgur.com/Hij3WEx.png) | Eligible    |
 
-#### Eligible ➔ Fireable
+#### Eligible ➔ Fireable / NotEligible
 
 | Task Type       | Task ID                          | Output Node ID | Status          |
 |:----------------|:---------------------------------|:---------------|:----------------|
@@ -135,3 +136,11 @@ Another way to think about the eligibility check is to visualize whether the "sh
 | InitializeBoard | `01GDV0PDK9E0MME36AA0CFK18F`     | 1              | Eligible        |
 | ~~PlaceMark~~   | ~~`01GDV0PDKJ5BGSQTSTEC8XGYKJ`~~ | ~~0~~          | ~~NotEligible~~ |
 | PlaceMark       | `01GDV0PDKK8AQX83D5P23HY22Y`     | 1              | Eligible        |
+
+After a task is in an Eligible state, the next state it can transition to is being either Fireable or NotEligible. The task's state will transition to Fireable as soon as all the input data it requires is present in the Submission Graph. Alternatively, if the output node is found to have been computed at a later point (due to factors external to this task), the task's state will transition to NotEligible.
+
+Let's analyze the remaining tasks above to see how they transition. For visual analysis, recall both the [submitted graph](#graph-submission) and the [task diagrams](#tasks) at the top that indicate when each task is fireable. 
+
+1. `...JX2P` will transition to Fireable because the `value` property is defined for node #0, and currently no `taskId` property defined. The `taskId` property is automatically added to output nodes after computation so we know which task was responsible for it. After this node is computed, we should expect it to have a `taskId` value of `...JX2P`.
+2. `...K18F` will remain in an Eligible state because there is no `value` property defined for node #1. We will revisit this task at a later point as the graph updates.
+3. `...Y22Y` will remain in an Eligible state because although the `value` property is defined for the `NEXT_MOVE` relationship, node #0 does not have a `taskId` property defined. We should expect it to have one after `...JX2P` is computed. This makes sense because in our Experience Graph, we want new moves to occur from prior Board positions we have experienced. We cannot make a new move from a Board state we have yet to encounter. 
