@@ -194,9 +194,9 @@ export class BaseTask {
 
     // Call the Task's executor function.
     if (this.compute(args)) {
-      this.setState(TaskState.Computed);
       await this.updateExperienceGraph();
       await this.updateSubmissionsGraph();
+      this.setState(TaskState.Computed);
     } else {
       this.setState(TaskState.Aborted);
     }

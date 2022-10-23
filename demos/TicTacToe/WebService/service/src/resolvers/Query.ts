@@ -23,7 +23,7 @@ export const recommendations = async (parent, args) => {
   const outcome = args.player === 1 ? 'WIN_X' : 'WIN_O';
 
   const transaction = await executeReadQuery(`
-    MATCH (:Board {value: '${board}'})-[moves:NEXT_MOVE *]->(terminal:Board {state: '${outcome}'})
+    MATCH (current:Board {value: '${board}'})-[moves:NEXT_MOVE *]->(terminal:Board {state: '${outcome}'})
     RETURN moves;
   `);
 
