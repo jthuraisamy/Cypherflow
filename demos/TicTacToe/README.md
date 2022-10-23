@@ -2,7 +2,7 @@
 
 ## Assumptions
 
-To understand the actual intended purpose this demo serves, some suspension of disbelief would be appropriate with the following assumptions:
+To understand the actual intended purpose this demo serves, some suspension of disbelief would be appropriate by assuming:
 
 - Consistent and immutable rules for maximizing reward (winning) do not exist.
 
