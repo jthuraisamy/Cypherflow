@@ -109,7 +109,7 @@ stateDiagram-v2
 
 At this initial point, all the tasks are in an Instantiated state, and the next step for each task is call the `isEligible()` function. Although each output node appears to be a candidate the task can compute, we also need to know whether the input specifications for the task match with the output node.
 
-Consider the Submission DB queries below that check the eligibility of the two `PlaceMark` tasks. The first one will fail to match because there are no nodes that connect toward node #0. The second one will successfully match because node #0 is a `Board` node that connects toward node #1 (also `Board`) with a `NEXT_MOVE` relationship. 
+Consider the Submissions DB queries below that check the eligibility of the two `PlaceMark` tasks. The first one will fail to match because there are no nodes that connect toward node #0. The second one will successfully match because node #0 is a `Board` node that connects toward node #1 (also `Board`) with a `NEXT_MOVE` relationship. 
 
 ```cypher
 2022-09-26T01:00:19.719Z - PlaceMark(01GDV0PDKJ5BGSQTSTEC8XGYKJ) | MATCH (old:Board)-[move:NEXT_MOVE]->(new:Board)
@@ -171,3 +171,33 @@ The behaviour from this point can vary depending on whether any results are retu
 If there are results, then the properties of the output node from the Experience Graph will be propagated to the corresponding output in the Submission Graph, and the task will transition to a Cached state. This transition will trigger any Eligible tasks in the Submission Graph to re-evaluate whether they are still Eligible, and if so, re-evaluate whether they can transition to a Fireable state.
 
 Recall that a PlaceMark task requires the input Board node to have a `taskId` property for it to be Fireable. If an InitializeBoard task transitions to Cached, the `taskId` value of its output node will propagate to the Submission Graph. The presence of the `taskId` value will allow the corresponding PlaceMark task to transition to a Fireable state. This is an example of how a state transition in one task (InitializeBoard) can affect the state of another task (PlaceMark) without the tasks directly coordinating with each other.
+
+##### No Results ➔ Computing
+
+If there are no results, then the task will transition to the Computing state. During this state, the task's `compute()` function will execute. This function will establish what properties should propagate to the output node. After computation, both the Experience and Submission Graph will be updated, and the task will transition to a Computed state. As with the state transition to Cached, this will also trigger any Eligible tasks in the Submission Graph to re-evaluate whether they are still Eligible, and if so, re-evaluate whether they can transition to a Fireable state.
+
+## Recommendations
+
+Over time as more games are played (and more experience is collected), the Experience Graph serves an increasingly useful role in providing _next move_ recommendations to players.
+
+![](https://i.imgur.com/MApgUIO.png)
+
+The main principle in providing recommendations is to recognize the player's current state and return courses of action that lead toward the desired outcome. As experience is collected through the execution of PlaceMark tasks, Board nodes become connected in a manner that looks like this:
+
+![](https://i.imgur.com/2rUT1Xt.png)
+
+Intuitively, we can visually see what the paths to winning outcomes look like. Programmatically, we can track the player's current state using the `value` property of the Board nodes (e.g. `"[0,0,0,0,0,0,0,0,0]"` for the starting state of a game), and we can track their desired outcome using the `state` property of those nodes (e.g. `"WIN_X"` for Player X). This then translates into the following Cypher query:
+
+```
+MATCH (current:Board {value: $current_state})-[moves:NEXT_MOVE *]->(terminal:Board {state: $desired_outcome})
+RETURN moves;
+```
+
+If we were playing X at the start of a new game, the query would look like this:
+
+```
+MATCH (current:Board {value: "[0,0,0,0,0,0,0,0,0]"})-[moves:NEXT_MOVE *]->(terminal:Board {state: "WIN_X"})
+RETURN moves;
+```
+
+This would return three arrays corresponding to the rows in the game UI that recommend X0, X4, and X6 as the next moves. Each array contains a sequence of edges starting from the current Board to a winning Board.
