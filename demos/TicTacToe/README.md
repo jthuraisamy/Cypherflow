@@ -200,4 +200,4 @@ MATCH (current:Board {value: "[0,0,0,0,0,0,0,0,0]"})-[moves:NEXT_MOVE *]->(termi
 RETURN moves;
 ```
 
-This would return three arrays corresponding to the rows in the game UI that recommend X0, X4, and X6 as the next moves. Each array contains a sequence of edges starting from the current Board and ending a winning Board.
+This would return three arrays corresponding to the rows in the game UI that recommend X0, X4, and X6 as the next moves. Each array contains a sequence of edges starting from the current Board and ending at a winning Board.
