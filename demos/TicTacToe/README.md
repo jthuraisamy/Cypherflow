@@ -182,7 +182,7 @@ Over time as more games are played (and more experience is collected), the Exper
 
 ![](https://i.imgur.com/MApgUIO.png)
 
-The main principle in providing recommendations is to recognize the player's current state and return courses of action that lead toward the desired outcome. As experience is collected through the execution of PlaceMark tasks, Board nodes become connected in a manner that looks like this:
+At a high level, the main principle in providing recommendations is to recognize the player's current state and return courses of action that lead toward the desired outcome. As experience is collected through the execution of PlaceMark tasks, Board nodes become connected in a manner that looks like this:
 
 ![](https://i.imgur.com/2rUT1Xt.png)
 
@@ -200,4 +200,4 @@ MATCH (current:Board {value: "[0,0,0,0,0,0,0,0,0]"})-[moves:NEXT_MOVE *]->(termi
 RETURN moves;
 ```
 
-This would return three arrays corresponding to the rows in the game UI that recommend X0, X4, and X6 as the next moves. Each array contains a sequence of edges starting from the current Board to a winning Board.
+This would return three arrays corresponding to the rows in the game UI that recommend X0, X4, and X6 as the next moves. Each array contains a sequence of edges starting from the current Board and ending a winning Board.
