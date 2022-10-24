@@ -178,11 +178,11 @@ If there are no results, then the task will transition to the Computing state. D
 
 ## Recommendations
 
-Over time as more games are played (and more experience is collected), the Experience Graph serves an increasingly useful role in providing _next move_ recommendations to players. At a high level, the main principle in providing recommendations is to recognize the player's current state and return courses of action that lead toward the desired outcome. As experience is collected through the execution of PlaceMark tasks, Board nodes become connected in a manner that looks like this:
+As more games are played over time (and more experience is collected), the Experience Graph serves an increasingly useful role in providing _next move_ recommendations to players. At a high level, the main principle in providing recommendations is to recognize the player's current state and return courses of action that lead toward the desired outcome. As experience is collected through the execution of PlaceMark tasks, Board nodes become connected in a manner that looks like this:
 
 ![](https://i.imgur.com/2rUT1Xt.png)
 
-Intuitively, we can visually see what the paths to winning outcomes look like. Programmatically, we can track the player's current state using the `value` property of the Board nodes (e.g. `"[0,0,0,0,0,0,0,0,0]"` for the starting state of a game), and we can track their desired outcome using the `state` property of those nodes (e.g. `"WIN_X"` for Player X). This then translates into the following Cypher query:
+Intuitively, we can see what the paths to winning outcomes look like. Programmatically, we can track the player's current state using the `value` property of the Board nodes (e.g. `"[0,0,0,0,0,0,0,0,0]"` for the starting state of a game), and we can track their desired outcome using the `state` property of those nodes (e.g. `"WIN_X"` for Player X). This then translates into the following Cypher query:
 
 ```
 MATCH (current:Board {value: $current_state})-[moves:NEXT_MOVE *]->(terminal:Board {state: $desired_outcome})
