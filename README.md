@@ -74,13 +74,13 @@ Demos are included as pedological tools to understand how Cypherflow works.
 git clone https://github.com/jthuraisamy/Cypherflow.git
 cd ./Cypherflow/demos/<DEMO_NAME>
 
-# Run application via Docker Compose.
-sudo docker-compose up --build
+# Run application via Tilt.
+tilt up
 
 # Visit http://localhost:4000 in browser.
 
 # Run the following before CD-ing into another demo folder.
-sudo docker-compose down --volumes
+tilt down
 ```
 
 ### Access
