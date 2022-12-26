@@ -4,36 +4,31 @@ services:
   redis_stack:
     container_name: redis_stack
     hostname: redis-stack
-    image: redis/redis-stack:latest
+    image: redis/redis-stack:6.2.6-v0
     restart: unless-stopped
     ports:
       - "4001:8001"
-    logging:
-      driver: none
 
   experience_graph:
     container_name: experience_graph
     hostname: experience-graph
-    image: memgraph/memgraph-platform:latest
+    image: memgraph/memgraph-platform:2.6.1-memgraph2.5.0-lab2.4.0
     tty: true
     ports:
       - "4002:3000"
-    logging:
-      driver: none
 
   submissions_graph:
     container_name: submissions_graph
     hostname: submissions-graph
-    image: memgraph/memgraph-platform:latest
+    image: memgraph/memgraph-platform:2.6.1-memgraph2.5.0-lab2.4.0
     tty: true
     ports:
       - "4003:3000"
-    logging:
-      driver: none
 
   calculator_service:
     container_name: calculator_service
     hostname: calculator-service
+    image: cypherflow/calculator_service
     build: ./CalculatorService
     restart: unless-stopped
     volumes:
@@ -46,6 +41,7 @@ services:
   web_service:
     container_name: web_service
     hostname: web-service
+    image: cypherflow/web_service
     build: ./WebService
     restart: unless-stopped
     depends_on:

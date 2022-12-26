@@ -1,0 +1,3 @@
+docker_compose('./docker-compose.yml')
+docker_build('cypherflow/calculator_service', './CalculatorService')
+docker_build('cypherflow/web_service', './WebService')
